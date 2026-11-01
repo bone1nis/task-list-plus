@@ -70,7 +70,7 @@ pnpm format         # Prettier
 
 - **Husky**: `pre-commit` запускает lint-staged (ESLint + Prettier по изменённым файлам), `pre-push` - typecheck и тесты. Хуки активируются при `pnpm install` после `git init`.
 - **GitHub Actions** (`.github/workflows/ci.yml`): lint, format:check, typecheck, test, build на каждый push в `main` и PR.
-- **Netlify**: `netlify.toml` уже настроен (`pnpm build`, публикация `dist`) - достаточно подключить репозиторий.
+- **Netlify**: сайт подключён к репозиторию и собирается автоматически при каждом пуше (настройки в `netlify.toml`: `pnpm build`, публикация `dist`). Демо: https://task-list-plus.netlify.app/
 
 ## Функциональность
 
