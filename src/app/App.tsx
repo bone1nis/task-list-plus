@@ -1,5 +1,7 @@
+import { HomePage } from '@/pages/home'
+
 const App = () => {
-  return <h1>Todo</h1>
+  return <HomePage />
 }
 
 export default App

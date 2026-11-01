@@ -1,0 +1,41 @@
+.board {
+  background: var(--paper);
+  border: var(--border);
+  border-radius: 16px;
+  box-shadow: var(--board-shadow);
+  padding: 20px;
+
+  &__filter {
+    margin-top: 4px;
+  }
+
+  .todo-list {
+    list-style: none;
+    margin: 16px 0 0;
+    padding: 0;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: var(--border);
+  }
+
+  @media (max-width: 480px) {
+    padding: 14px;
+
+    &__filter {
+      margin-top: 16px;
+    }
+
+    &__footer {
+      flex-direction: column;
+      align-items: stretch;
+      text-align: center;
+    }
+  }
+}

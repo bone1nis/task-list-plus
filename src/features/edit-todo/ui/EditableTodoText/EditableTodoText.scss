@@ -1,0 +1,12 @@
+.editable {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+
+  &:hover .todo-text__edit {
+    opacity: 1;
+  }
+}

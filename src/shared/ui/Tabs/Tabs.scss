@@ -1,0 +1,33 @@
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--soft);
+  border-radius: var(--radius);
+
+  &__item {
+    flex: 1;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+
+    &:hover {
+      color: var(--ink);
+    }
+
+    &[aria-pressed='true'] {
+      background: var(--tab-active);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+    }
+  }
+}
