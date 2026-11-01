@@ -2,6 +2,8 @@
 
 Минималистичный список задач на React + TypeScript + Vite. Без backend и UI-библиотек: все компоненты и стили написаны с нуля, данные хранятся в `localStorage`.
 
+[Демо](https://task-list-plus.netlify.app/)
+
 ## Стек
 
 React 19 · TypeScript · Vite · SCSS · SVGR · Zustand · Yup · dnd-kit · ESLint (typescript-eslint, react, react-hooks) · Prettier · Vitest
