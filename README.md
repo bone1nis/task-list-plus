@@ -1,32 +1,120 @@
-# React + TypeScript + Vite
+# ZalogHub Todo
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Минималистичный список задач на React + TypeScript + Vite. Без backend и UI-библиотек: все компоненты и стили написаны с нуля, данные хранятся в `localStorage`.
 
-Currently, two official plugins are available:
+## Стек
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+React 19 · TypeScript · Vite · SCSS · SVGR · Zustand · Yup · dnd-kit · ESLint (typescript-eslint, react, react-hooks) · Prettier · Vitest
 
-## React Compiler
+## Архитектура
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Проект построен по [Feature-Sliced Design](https://feature-sliced.design): слои `app → pages → widgets → features → entities → shared`, импорты только сверху вниз, внешний доступ к слайсу - через его `index.ts`. Алиас `@/` указывает на `src/`.
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+src/
+├─ app/                   вход, глобальные стили (SCSS)
+├─ pages/
+│  └─ home/               страница HomePage
+├─ widgets/
+│  └─ todo-board/         доска: форма, фильтр, список, счётчик
+├─ features/
+│  ├─ add-todo/           добавление задачи
+│  ├─ filter-todos/       фильтры: все / активные / выполненные
+│  ├─ edit-todo/          редактирование текста (двойной клик, Enter / Esc)
+│  ├─ reorder-todos/      перетаскивание (dnd-kit, есть управление с клавиатуры)
+│  ├─ clear-completed/    очистка выполненных
+│  └─ toggle-theme/       светлая / тёмная тема
+├─ entities/
+│  └─ todo/               тип Todo, операции, валидация, стор (zustand + localStorage), TodoItem
+└─ shared/
+   ├─ ui/                 Button, Input, Checkbox, Tabs, EmptyState
+   ├─ lib/                общие хелперы
+   └─ assets/icons/       SVG-файлы, подключаются как React-компоненты (SVGR)
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Стили - SCSS (БЭМ-именование), лежат рядом с компонентами; общие токены - CSS-переменные в `app/styles/global.scss`.
+
+Бизнес-логика (`model/`) не зависит от React и покрыта тестами. Задачи хранятся через `zustand` + `persist` в `localStorage`. При загрузке сохранённые данные проверяет схема Yup (`sanitize.ts`): записи с неверной структурой (нет текста, не тот тип поля, не список) отбрасываются, поэтому испорченный `localStorage` не ломает приложение. Эта же библиотека проверяет текст, который вводит пользователь.
+
+## Принятые решения
+
+- **FSD** - задел на рост: новая функциональность (например, теги или поиск) добавляется отдельной фичей и не трогает существующий код, а правило, что импорт идёт только вниз, не даёт слоям переплетаться. Для задачи такого размера это чуть больше структуры, чем нужно, но она окупается при расширении.
+- **Логика отдельно от интерфейса** - операции над задачами, валидация и фильтры - чистые функции в `model/`, они покрыты тестами без React и браузера. Состояние формы и доски вынесено в хуки, компоненты содержат только разметку.
+- **Zustand + `persist`** - вместо самописной работы с `localStorage`: меньше кода, сохранение и восстановление работают из коробки.
+- **Yup** - одна библиотека и для проверки ввода пользователя, и для проверки данных, прочитанных из `localStorage`.
+- **Защита от испорченных данных (`sanitize.ts`)** - `persist` убеждается только в том, что в `localStorage` лежит корректный JSON. Если JSON верный, но форма не та (нет текста, поле другого типа, не список), стор принял бы такое как есть и список упал бы при отрисовке. Поэтому после загрузки записи проверяются схемой, а некорректные отбрасываются. В ТЗ этого нет, это дополнительная страховка.
+- **Свои UI-компоненты на нативных элементах** - `button`, `input type="checkbox"`, `label` по умолчанию работают с клавиатурой и скринридерами; оформление полностью своё.
+- **SCSS + CSS-переменные** - цвета заданы токенами, тёмная тема переопределяет только переменные (`data-theme="dark"`), стили лежат рядом с компонентами.
+- **Тема без мигания** - выбор темы читается маленьким скриптом в `index.html` до отрисовки страницы; по умолчанию берётся системная тема.
+- **SVGR** - иконки хранятся обычными `.svg`-файлами и импортируются как React-компоненты.
+- **Анимации на CSS** - появление и удаление задач; при `prefers-reduced-motion` они сжимаются до нуля, а удаление всё равно срабатывает.
+
+## Установка и запуск
+
+Требуется Node ≥ 20.19 (см. `.nvmrc`: `nvm use`) и [pnpm](https://pnpm.io).
+
+```bash
+pnpm install
+pnpm dev            # dev-сервер
+pnpm build          # проверка типов + production-сборка
+pnpm preview        # просмотр сборки
+pnpm lint           # ESLint
+pnpm typecheck      # tsc
+pnpm test           # Vitest
+pnpm format         # Prettier
+```
+
+## Качество и деплой
+
+- **Husky**: `pre-commit` запускает lint-staged (ESLint + Prettier по изменённым файлам), `pre-push` - typecheck и тесты. Хуки активируются при `pnpm install` после `git init`.
+- **GitHub Actions** (`.github/workflows/ci.yml`): lint, format:check, typecheck, test, build на каждый push в `main` и PR.
+- **Netlify**: `netlify.toml` уже настроен (`pnpm build`, публикация `dist`) - достаточно подключить репозиторий.
+
+## Функциональность
+
+**По ТЗ**
+
+- Добавление задач: поле ввода, кнопка, Enter
+- Переключение выполнена / не выполнена, выполненные визуально отличаются
+- Удаление задач
+- Фильтры: все / активные / выполненные
+- Сохранение в `localStorage`, повреждённые данные игнорируются
+- Пустые и состоящие из пробелов задачи добавить нельзя
+
+**Сверх ТЗ**
+
+- Редактирование задачи (двойной клик или карандаш, Enter сохраняет, Esc отменяет)
+- Перетаскивание для изменения порядка (работает и в фильтрах), в том числе с клавиатуры
+- Счётчик активных задач и очистка выполненных
+- Ограничение длины (120 символов) и сообщения об ошибках
+- Разные пустые состояния для пустого списка и пустого фильтра
+- Светлая и тёмная темы с сохранением выбора
+- Анимации появления и удаления с учётом `prefers-reduced-motion`
+- Адаптивная вёрстка, доступность с клавиатуры, `aria-*`
+- Unit-тесты логики, ESLint, Prettier, CI (GitHub Actions), pre-commit хуки (Husky)
+
+## Что можно улучшить
+
+**Архитектура (FSD)**
+
+- Добавить линтер границ слоёв (например, `eslint-plugin-boundaries` или Steiger), чтобы правила (импорт только вниз, слайсы не импортируют друг друга) проверялись автоматически, а не договорённостью.
+- Слайсы `edit-todo` и `reorder-todos` встраиваются в список через виджет (`TodoRow`). Если появятся новые сценарии над задачей (теги, приоритет), стоит вынести сборку строки в отдельный виджет.
+- Вынести общую логику `localStorage`-персистентности в `shared`, если появятся новые сущности (теги, проекты).
+
+**Качество**
+
+- Тесты компонентов (форма, редактирование, фильтры) и e2e на основные сценарии (Playwright).
+- Автоматический аудит доступности (axe) и проверка скринридером.
+- Тест перетаскивания в браузере (в юнит-тестах покрыта только логика переноса `moveTodo`).
+
+**Продукт**
+
+- Отмена удаления (undo).
+
+## AI-assisted разработка
+
+Правила работы с ИИ-ассистентом описаны в [CLAUDE.md](CLAUDE.md).
+
+## Время выполнения
+
+- 60 минут
